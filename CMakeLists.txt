@@ -8,9 +8,9 @@ execute_process(
         WORKING_DIRECTORY libs)
 add_subdirectory(libs/sdl2 libs/sdl2)
 
-add_subdirectory(viewer)
+add_subdirectory(core)
 
 
-add_executable(main viewer/main.c)
+add_executable(main core/main.c)
 
-target_link_libraries(main viewer)
+target_link_libraries(main core)
