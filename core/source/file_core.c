@@ -39,16 +39,18 @@ int write(FILE *file_ptr, int offset, int length, unsigned char *buffer, int wri
             return fwrite(buffer, sizeof(unsigned char), length, file_ptr) == length ? 0 : 2;
             break;
         case WRITE_APPEND:
+            int b = 1024*1024;
             fseek(file_ptr, 0, SEEK_END);
-            long override = ftell(file_ptr);
-            while (override >= offset){
-                long l = override - offset > 1024*1024 ? 1024*1024 : override - offset;
-                unsigned char* bytes = malloc(sizeof (unsigned char) * l);
-                fseek(file_ptr, override - l, SEEK_SET);
-                fread(bytes, sizeof(unsigned char), l, file_ptr);
-                fseek(file_ptr, override + offset, SEEK_SET);
-                fwrite(bytes, sizeof(unsigned char), l, file_ptr);
-                override -= 1024*1024;
+            long len = ftell(file_ptr);
+            long pos = len;
+            while (pos > offset){
+                long read_size = pos - b > offset ?  b : pos - offset;
+                pos -= read_size;
+                unsigned char* bytes = malloc(sizeof (unsigned char) * read_size);
+                fseek(file_ptr, pos, SEEK_SET);
+                if(fread(bytes, sizeof(unsigned char), read_size, file_ptr) != read_size) return 2;
+                fseek(file_ptr, pos + length, SEEK_SET);
+                if(fwrite(bytes, sizeof(unsigned char), read_size, file_ptr) != read_size) return 2;
                 free(bytes);
             }
             fseek(file_ptr, offset, SEEK_SET);
